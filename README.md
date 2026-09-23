@@ -1,6 +1,6 @@
 # Imperviousness Time Series Reconstruction — Change Backcalculation
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/RalserGeoville/clms_nvlcc_backcalculation/HEAD?urlpath=%2Fdoc%2Ftree%2Fchange_backcalculation.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/copernicus-land/clms_nvlcc_backcalculation/HEAD?urlpath=%2Fdoc%2Ftree%2Fchange_backcalculation.ipynb)
 
 ## Overview
 
@@ -30,7 +30,7 @@ switch ("did this pixel change?") rather than as a quantity to subtract.
 
 The easiest way to explore the notebook — no installation required:
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/RalserGeoville/clms_nvlcc_backcalculation/HEAD?urlpath=%2Fdoc%2Ftree%2Fchange_backcalculation.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/copernicus-land/clms_nvlcc_backcalculation/HEAD?urlpath=%2Fdoc%2Ftree%2Fchange_backcalculation.ipynb)
 
 The first launch can take a few minutes while Binder builds the environment; subsequent
 launches are faster thanks to caching.
@@ -40,7 +40,7 @@ launches are faster thanks to caching.
 Clone the repository:
 
 ```
-git clone https://github.com/RalserGeoville/clms_nvlcc_backcalculation.git
+git clone https://github.com/copernicus-land/clms_nvlcc_backcalculation.git
 cd clms_nvlcc_backcalculation
 ```
 
