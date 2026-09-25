@@ -176,8 +176,6 @@ def plot_invalid_pixel_counts(invalid, years, site_name):
     pct_labels = [f'{invalid[y][2]:.1f}%' for y in years]
 
     bars = ax1.bar(range(len(years)), inv_counts, color='#2f3fd4', alpha=0.50, label='Subtraction method')
-    ax1.bar(range(len(years)), [0] * len(years), color='#27ae60', alpha=0.50,
-            label='Binary mask substitution (always 0)')
     ax1.bar_label(bars, labels=pct_labels, padding=4, fontsize=9)
     ax1.set_xticks(range(len(years)))
     ax1.set_xticklabels([f'20{y}' for y in years])
