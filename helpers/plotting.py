@@ -7,14 +7,15 @@ cell can focus on one idea instead of plotting boilerplate.
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from matplotlib.colors import to_rgba
 import folium
 from folium.raster_layers import ImageOverlay
 
 from .raster_utils import array_to_img
 
 IMD_CMAP = 'YlOrRd'
-NEGATIVE_COLOR = (0.18, 0.20, 0.88)  # blue: impossible negative imperviousness
-OVER_COLOR = (0.05, 0.65, 0.20)      # green: above 100 %
+NEGATIVE_COLOR = '#2f3fd4'  # blue: impossible negative imperviousness
+OVER_COLOR = '#c41bc4'      # magenta: above 100 %
 
 
 def _imd_cmap():
@@ -29,10 +30,10 @@ def _figsize_for(arr, width=14):
 
 
 def _out_of_range_overlay(arr, alpha=0.8):
-    """RGBA layer highlighting pixels below 0 % (blue) or above 100 % (green)."""
+    """RGBA layer highlighting pixels below 0 % (blue) or above 100 % (magenta)."""
     rgba = np.zeros((*arr.shape, 4), dtype=float)
-    rgba[(~np.isnan(arr)) & (arr < 0)] = (*NEGATIVE_COLOR, alpha)
-    rgba[(~np.isnan(arr)) & (arr > 100)] = (*OVER_COLOR, alpha)
+    rgba[(~np.isnan(arr)) & (arr < 0)] = to_rgba(NEGATIVE_COLOR, alpha)
+    rgba[(~np.isnan(arr)) & (arr > 100)] = to_rgba(OVER_COLOR, alpha)
     return rgba
 
 
@@ -77,7 +78,7 @@ def plot_subtraction_maps(results, invalid, years, site_name):
         n_inv, _, pct = invalid[year]
         ax.set_title(
             f'Backward Subtraction — 20{year}   ({n_inv:,} invalid px, {pct:.1f} %)\n'
-            'blue = negative imperviousness   |   green = above 100 %',
+            'blue = negative imperviousness   |   magenta = above 100 %',
             fontsize=12,
         )
         ax.axis('off')
@@ -88,9 +89,11 @@ def plot_subtraction_maps(results, invalid, years, site_name):
 
 def plot_subtraction_histograms(results, years):
     """Per-year pixel-value distributions, highlighting out-of-range tails."""
-    shared_max = 0
+    shared_max, x_lo, x_hi = 0, -100, 100
     for year in years:
         flat = results[year].flatten()
+        x_lo = min(x_lo, np.nanmin(flat))
+        x_hi = max(x_hi, np.nanmax(flat))
         interior = flat[(flat > 0) & (flat < 100)]
         if len(interior):
             counts, _ = np.histogram(interior, bins=48, range=(1, 99))
@@ -106,12 +109,16 @@ def plot_subtraction_histograms(results, years):
         fig, ax = plt.subplots(figsize=(14, 4))
         ax.hist(valid, bins=50, range=(0, 100), color='#777', alpha=0.7, label='Valid (0–100 %)')
         if len(neg):
-            ax.hist(neg, bins=20, color='#2f3fd4', alpha=0.85, label=f'Negative: {len(neg):,} px')
+            ax.hist(neg, bins=20, color=NEGATIVE_COLOR, alpha=0.85, label=f'Negative: {len(neg):,} px')
         if len(over):
-            ax.hist(over, bins=20, color='#c41bc4', alpha=0.85, label=f'>100%%: {len(over):,} px')
+            ax.hist(over, bins=20, color=OVER_COLOR, alpha=0.85, label=f'>100 %: {len(over):,} px')
+
+        # Rug marks keep sparse out-of-range pixels visible next to the tall valid bars
+        for vals, color in [(neg, NEGATIVE_COLOR), (over, OVER_COLOR)]:
+            ax.plot(vals, np.zeros_like(vals), '|', color=color, ms=18, mew=1, clip_on=False)
 
         ax.set_ylim(0, shared_max * 1.2)
-        ax.set_xlim(-100, 100)
+        ax.set_xlim(x_lo - 5, x_hi + 5)
         ax.axvline(0, color='black', lw=1.5, ls='--', alpha=0.8)
         ax.axvline(100, color='black', lw=1.5, ls=':', alpha=0.8)
         ax.set_title(f'Pixel Value Distribution — Backward Subtraction 20{year}', fontsize=12)
@@ -220,7 +227,7 @@ def plot_interactive_comparison(clat, clon, zoom, bounds, orig, sub, ind, year):
     m = folium.Map(location=[clat, clon], zoom_start=zoom + 1)
     layers = [
         (orig, f'Original IMD 20{year}', {}),
-        (sub, f'Subtraction 20{year}', {'clr_below_vmin': '#2f3fd4', 'clr_above_vmax': '#c41bc4'}),
+        (sub, f'Subtraction 20{year}', {'clr_below_vmin': NEGATIVE_COLOR, 'clr_above_vmax': OVER_COLOR}),
         (ind, f'Binary Mask Substitution 20{year}', {}),
     ]
     for arr, name, kw in layers:
