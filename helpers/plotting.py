@@ -37,6 +37,13 @@ def _out_of_range_overlay(arr, alpha=0.8):
     return rgba
 
 
+def _out_of_range_legend():
+    return [
+        mpatches.Patch(color=NEGATIVE_COLOR, label='Impossible negative  (< 0 %)'),
+        mpatches.Patch(color=OVER_COLOR, label='Above maximum  (> 100 %)'),
+    ]
+
+
 def plot_site_overview(clat, clon, zoom, bounds, site_name):
     """Interactive folium map showing where the study area sits in Europe."""
     m = folium.Map(location=[clat, clon], zoom_start=zoom, tiles='OpenStreetMap')
@@ -64,10 +71,6 @@ def plot_status_map(arr, title, width=10):
 
 def plot_subtraction_maps(results, invalid, years, site_name):
     """Per-year subtraction-result maps with out-of-range pixels highlighted."""
-    legend_els = [
-        mpatches.Patch(color=NEGATIVE_COLOR, label='Impossible negative  (< 0 %)'),
-        mpatches.Patch(color=OVER_COLOR, label='Above maximum  (> 100 %)'),
-    ]
     for year in years:
         arr = results[year]
         fig, ax = plt.subplots(figsize=_figsize_for(arr))
@@ -82,7 +85,7 @@ def plot_subtraction_maps(results, invalid, years, site_name):
             fontsize=12,
         )
         ax.axis('off')
-        ax.legend(handles=legend_els, loc='lower right', fontsize=9, framealpha=0.9)
+        ax.legend(handles=_out_of_range_legend(), loc='lower right', fontsize=9, framealpha=0.9)
         plt.tight_layout()
         plt.show()
 
@@ -149,6 +152,7 @@ def plot_method_comparison(orig, sub, ind, invalid_info, year):
         ax.axis('off')
         if 'Subtraction' in title:
             ax.imshow(_out_of_range_overlay(arr, alpha=0.78))
+            ax.legend(handles=_out_of_range_legend(), loc='lower right', fontsize=9, framealpha=0.9)
 
     diff = ind - sub
     dmax = np.nanmax(np.abs(diff)) if np.any(~np.isnan(diff)) else 1
