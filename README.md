@@ -1,12 +1,12 @@
-# Imperviousness Time Series Reconstruction — Change Backcalculation
+# HRL Imperviousness — Time Series Reconstruction (Change Backcalculation)
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/copernicus-land/clms_nvlcc_backcalculation/HEAD?urlpath=%2Fdoc%2Ftree%2Fchange_backcalculation.ipynb)
 
 ## Overview
 
 This repository contains a Jupyter Notebook demonstrating a method for reconstructing
-spatially consistent historical **Imperviousness Density (IMD)** layers from the Copernicus
-High Resolution Land Cover programme, using the most recent (and most accurate)
+spatially consistent historical **Imperviousness Density (IMD)** layers of the CLMS
+**High-Resolution Layer Imperviousness (HRL Imperviousness)**, using the most recent (and most accurate)
 status layer as a baseline together with the **Imperviousness Density Change (IMDC)**
 layers.
 
@@ -74,6 +74,6 @@ jupyter lab
 
 ## Data
 
-The `data/` folder contains a small cropped subset of the CLMS HRLC Imperviousness Density
-(IMD) and Imperviousness Density Change (IMDC) products, provided only to make this notebook
+The `data/` folder contains a small cropped subset of the Imperviousness Density (IMD) and
+Imperviousness Density Change (IMDC) layers of the CLMS **HRL Imperviousness**, provided only to make this notebook
 self-contained and runnable. It is not the full dataset.
