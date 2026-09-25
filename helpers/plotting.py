@@ -90,14 +90,19 @@ def plot_subtraction_maps(results, invalid, years, site_name):
         plt.show()
 
 
-def plot_subtraction_histograms(results, years):
-    """Per-year pixel-value distributions (log scale), highlighting out-of-range tails."""
+def _subtraction_bins(results, years):
+    """Common 2 %-wide bins spanning all subtraction results (at least -100..100 %)."""
     x_lo, x_hi = -100, 100
     for year in years:
         x_lo = min(x_lo, np.nanmin(results[year]))
         x_hi = max(x_hi, np.nanmax(results[year]))
-    # Common 2 %-wide bins for all classes and years, so bar heights are comparable
-    bins = np.arange(2 * np.floor(x_lo / 2), 2 * np.ceil(x_hi / 2) + 2, 2)
+    return np.arange(2 * np.floor(x_lo / 2), 2 * np.ceil(x_hi / 2) + 2, 2)
+
+
+def plot_subtraction_histograms(results, years):
+    """Per-year pixel-value distributions (log scale), highlighting out-of-range tails."""
+    # Common bins for all classes and years, so bar heights are comparable
+    bins = _subtraction_bins(results, years)
     y_max = max(np.histogram(results[year][~np.isnan(results[year])], bins=bins)[0].max() for year in years)
 
     for year in years:
@@ -196,33 +201,33 @@ def plot_invalid_pixel_counts(invalid, years, site_name):
 
 
 def plot_year_distribution(status, sub_results, ind_results, year):
-    """Pixel-value distribution comparison (original / subtraction / binary mask substitution) for one year."""
-    fig, ax2 = plt.subplots(figsize=(8, 5))
+    """Pixel-value distributions (original / subtraction / binary mask substitution) for one year.
 
-    bins = np.linspace(-30, 110, 70)
+    One panel per series, stacked with shared axes, so the nearly identical
+    distributions don't hide each other. Bins and x-range match
+    plot_subtraction_histograms.
+    """
+    bins = _subtraction_bins(sub_results, list(sub_results))
     series = [
         (status[year][0], f'Original IMD 20{year}', '#888'),
-        (sub_results[year], 'Subtraction', '#2f3fd4'),
-        (ind_results[year], 'Binary mask substitution', '#27ae60'),
+        (sub_results[year], f'Subtraction 20{year}', '#2f3fd4'),
+        (ind_results[year], f'Binary mask substitution 20{year}', '#27ae60'),
     ]
     flats = [arr[~np.isnan(arr)].flatten() for arr, _, _ in series]
-    # Solid bars side by side per bin: overlapping transparent bars mixed into
-    # colours that did not match the legend
-    ax2.hist(flats, bins=bins, color=[c for _, _, c in series], label=[l for _, l, _ in series])
+    y_max = max(np.histogram(flat, bins=bins)[0].max() for flat in flats)
 
-    ax2.axvline(0, color='black', lw=1.5, ls='--', alpha=0.8)
-    ax2.axvline(100, color='black', lw=1.5, ls=':', alpha=0.8)
-    ax2.set_xlabel('Imperviousness value (%)')
-    ax2.set_ylabel('Pixel count')
-    ax2.set_title(f'Pixel Distributions — 20{year}', fontsize=12)
-
-    # Scale to the interior (1-99 %) distribution so the 0 %/100 % spikes don't dominate
-    interior = status[year][0]
-    interior = interior[~np.isnan(interior)]
-    interior = interior[(interior > 0) & (interior < 100)]
-    ref_counts, _ = np.histogram(interior, bins=48, range=(1, 99))
-    ax2.set_ylim(0, ref_counts.max() * 1.2)
-    ax2.legend(fontsize=10)
+    fig, axes = plt.subplots(3, 1, figsize=(14, 8), sharex=True, sharey=True)
+    for ax, flat, (_, label, color) in zip(axes, flats, series):
+        ax.hist(flat, bins=bins, color=color)
+        ax.set_yscale('log')
+        ax.set_ylim(0.8, y_max * 2)
+        ax.axvline(0, color='black', lw=1.5, ls='--', alpha=0.8)
+        ax.axvline(100, color='black', lw=1.5, ls=':', alpha=0.8)
+        ax.set_title(label, fontsize=11)
+        ax.set_ylabel('Pixel count (log)')
+    axes[-1].set_xlim(bins[0] - 5, bins[-1] + 5)
+    axes[-1].set_xlabel('Imperviousness value (%)')
+    fig.suptitle(f'Pixel Distributions — 20{year}', fontsize=12)
 
     plt.tight_layout()
     plt.show()
