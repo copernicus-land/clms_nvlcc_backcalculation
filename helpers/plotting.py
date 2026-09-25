@@ -91,16 +91,14 @@ def plot_subtraction_maps(results, invalid, years, site_name):
 
 
 def plot_subtraction_histograms(results, years):
-    """Per-year pixel-value distributions, highlighting out-of-range tails."""
-    shared_max, x_lo, x_hi = 0, -100, 100
+    """Per-year pixel-value distributions (log scale), highlighting out-of-range tails."""
+    x_lo, x_hi = -100, 100
     for year in years:
-        flat = results[year].flatten()
-        x_lo = min(x_lo, np.nanmin(flat))
-        x_hi = max(x_hi, np.nanmax(flat))
-        interior = flat[(flat > 0) & (flat < 100)]
-        if len(interior):
-            counts, _ = np.histogram(interior, bins=48, range=(1, 99))
-            shared_max = max(shared_max, counts.max())
+        x_lo = min(x_lo, np.nanmin(results[year]))
+        x_hi = max(x_hi, np.nanmax(results[year]))
+    # Common 2 %-wide bins for all classes and years, so bar heights are comparable
+    bins = np.arange(2 * np.floor(x_lo / 2), 2 * np.ceil(x_hi / 2) + 2, 2)
+    y_max = max(np.histogram(results[year][~np.isnan(results[year])], bins=bins)[0].max() for year in years)
 
     for year in years:
         flat = results[year].flatten()
@@ -110,24 +108,29 @@ def plot_subtraction_histograms(results, years):
         over = flat[flat > 100]
 
         fig, ax = plt.subplots(figsize=(14, 4))
-        ax.hist(valid, bins=50, range=(0, 100), color='#777', alpha=0.7, label='Valid (0–100 %)')
-        if len(neg):
-            ax.hist(neg, bins=20, color=NEGATIVE_COLOR, alpha=0.85, label=f'Negative: {len(neg):,} px')
-        if len(over):
-            ax.hist(over, bins=20, color=OVER_COLOR, alpha=0.85, label=f'>100 %: {len(over):,} px')
+        classes = [
+            (valid, '#777', 0.7, 'Valid (0–100 %)'),
+            (neg, NEGATIVE_COLOR, 0.85, f'Negative: {len(neg):,} px'),
+            (over, OVER_COLOR, 0.85, f'>100 %: {len(over):,} px'),
+        ]
+        for vals, color, alpha, _ in classes:
+            if len(vals):
+                ax.hist(vals, bins=bins, color=color, alpha=alpha)
 
-        # Rug marks keep sparse out-of-range pixels visible next to the tall valid bars
-        for vals, color in [(neg, NEGATIVE_COLOR), (over, OVER_COLOR)]:
-            ax.plot(vals, np.zeros_like(vals), '|', color=color, ms=18, mew=1, clip_on=False)
-
-        ax.set_ylim(0, shared_max * 1.2)
-        ax.set_xlim(x_lo - 5, x_hi + 5)
+        # Log scale keeps single out-of-range pixels visible next to the tall valid bars
+        ax.set_yscale('log')
+        ax.set_ylim(0.8, y_max * 2)
+        ax.set_xlim(bins[0] - 5, bins[-1] + 5)
         ax.axvline(0, color='black', lw=1.5, ls='--', alpha=0.8)
         ax.axvline(100, color='black', lw=1.5, ls=':', alpha=0.8)
         ax.set_title(f'Pixel Value Distribution — Backward Subtraction 20{year}', fontsize=12)
         ax.set_xlabel('IMD value (%)')
-        ax.set_ylabel('Pixel count')
-        ax.legend(fontsize=9)
+        ax.set_ylabel('Pixel count (log scale)')
+        # Same legend entries on every plot, even when a class is empty
+        ax.legend(
+            handles=[mpatches.Patch(color=c, alpha=a, label=l) for _, c, a, l in classes],
+            loc='upper left', fontsize=9,
+        )
         plt.tight_layout()
         plt.show()
 
