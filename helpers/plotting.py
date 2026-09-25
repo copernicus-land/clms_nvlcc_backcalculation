@@ -91,12 +91,15 @@ def plot_subtraction_maps(results, invalid, years, site_name):
 
 
 def _subtraction_bins(results, years):
-    """Common 2 %-wide bins spanning all subtraction results (at least -100..100 %)."""
+    """Common 1 %-wide bins spanning all subtraction results (at least -100..100 %).
+
+    Bin edges sit at integer ± 0.5, so each bar is centred on its integer value.
+    """
     x_lo, x_hi = -100, 100
     for year in years:
         x_lo = min(x_lo, np.nanmin(results[year]))
         x_hi = max(x_hi, np.nanmax(results[year]))
-    return np.arange(2 * np.floor(x_lo / 2), 2 * np.ceil(x_hi / 2) + 2, 2)
+    return np.arange(np.floor(x_lo) - 0.5, np.ceil(x_hi) + 1.5, 1)
 
 
 def plot_subtraction_histograms(results, years):
