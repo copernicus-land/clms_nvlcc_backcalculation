@@ -199,14 +199,15 @@ def plot_year_distribution(status, sub_results, ind_results, year):
     fig, ax2 = plt.subplots(figsize=(8, 5))
 
     bins = np.linspace(-30, 110, 70)
-    for arr, label, color in [
+    series = [
         (status[year][0], f'Original IMD 20{year}', '#888'),
         (sub_results[year], 'Subtraction', '#2f3fd4'),
         (ind_results[year], 'Binary mask substitution', '#27ae60'),
-    ]:
-        flat = arr.flatten()
-        flat = flat[~np.isnan(flat)]
-        ax2.hist(flat, bins=bins, alpha=0.55, color=color, label=label)
+    ]
+    flats = [arr[~np.isnan(arr)].flatten() for arr, _, _ in series]
+    # Solid bars side by side per bin: overlapping transparent bars mixed into
+    # colours that did not match the legend
+    ax2.hist(flats, bins=bins, color=[c for _, _, c in series], label=[l for _, l, _ in series])
 
     ax2.axvline(0, color='black', lw=1.5, ls='--', alpha=0.8)
     ax2.axvline(100, color='black', lw=1.5, ls=':', alpha=0.8)
