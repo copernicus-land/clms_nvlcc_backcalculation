@@ -58,6 +58,31 @@ Then launch Jupyter and open the notebook:
 jupyter lab
 ```
 
+### Launch with Docker
+
+If you have Docker installed, `run_docker.sh` builds an image from `environment.yml` and
+serves the notebook with JupyterLab — no local conda setup needed:
+
+```
+./run_docker.sh
+```
+
+Then open <http://localhost:8888/lab/tree/change_backcalculation.ipynb>. The first run takes
+a few minutes while the environment is built; later runs start in seconds. The repository is
+mounted into the container, so changes you save in the notebook are written back to your
+local copy. Stop the server with Ctrl+C.
+
+By default the server only accepts connections from your own machine and needs no token.
+To reach it from other computers on your network, use `--lan`:
+
+```
+./run_docker.sh --lan         # optionally followed by a port, e.g. ./run_docker.sh --lan 9000
+```
+
+This listens on all network interfaces and protects the server with a random token; the
+script prints the links (including the token) to open from another machine. Anyone with the
+link can run code on the host, so only share it with people you trust.
+
 ## Repository Structure
 
 - `change_backcalculation.ipynb` – main notebook. Focuses on the idea: site selection, the
@@ -70,7 +95,8 @@ jupyter lab
 - `helpers/ui.py` – dropdown-selector widget factory.
 - `data/` – small demo dataset: cropped IMD/IMDC GeoTIFFs for two study areas (Innsbruck,
   North Italy) plus `site_definition.yaml`, which defines their extents and resolutions.
-- `environment.yml` – conda environment definition (used both locally and by Binder).
+- `environment.yml` – conda environment definition (used locally, by Binder, and by Docker).
+- `run_docker.sh` – builds a Docker image from `environment.yml` and serves the notebook.
 
 ## Data
 
